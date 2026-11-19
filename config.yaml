@@ -1,0 +1,57 @@
+# MSS-1M (ICT Market Structure Shift) bot configuration.
+# 1-MINUTE EXPERIMENTAL VARIANT of the 15m MSS bot (~/workspace/mss-bot),
+# built Nov 19, 2026 for an A/B timeframe comparison. Detection and
+# execution run on 1m bars; the 1H bias filter is unchanged. Deliberate
+# difference #2 (Steve's choice): pending setups live 10 minutes here
+# (setup_max_bars_1m: 10) vs 60 minutes in the original.
+#
+# CREDENTIAL SAFETY: never commit real keys. Prefer the TOPSTEPX_USERNAME /
+# TOPSTEPX_API_KEY / TOPSTEPX_ACCOUNT_ID environment variables (they take
+# precedence over the values below). Placeholders only in this file.
+
+# TopstepX (ProjectX Gateway) credentials — PLACEHOLDERS, replace to run.
+# Only used to READ bars in paper mode. Paper mode places ZERO orders.
+username: "YOUR_TOPSTEPX_USERNAME"
+api_key: "YOUR_TOPSTEPX_API_KEY"
+account_id: 0
+
+# Mode: "paper" is the ONLY supported mode.
+#   paper: connect (REST, read-only bars), scan ES, simulate fills in the
+#          paper executor. ZERO orders placed.
+#   live:  NOT IMPLEMENTED and NOT APPROVED. The bot refuses to start in
+#          any mode other than "paper". See README — "What Steve must
+#          approve before live" — before this ever changes.
+mode: "paper"
+
+# Account / risk (family guardrails)
+size: 1                    # contracts per trade
+max_daily_loss: 500.0      # halt new entries if daily P&L <= -$500
+max_trades_per_day: 0      # 0 = no daily trade cap (Steve, Nov 13 2026)
+poll_seconds: 60           # main-loop cadence during RTH
+
+# Market — ES front month, resolved at startup. NQ may be added later
+# (config only; the MSS rules were validated on ES synthetic bars only).
+market:
+  symbol: "ES"
+  tick: 0.25
+  point_value: 50.0        # $ per 1.00 point per contract (paper P&L)
+
+# ICT MSS parameters — every mechanical choice lives here.
+# See README "Mechanical choices" for the reasoning and video citations.
+mss:
+  swing_lookback_1m: 2     # swing = fractal extreme of +/-2 bars (1m)
+  swing_lookback_1h: 2     # same for the 1H bias frame
+  min_displacement_points: 3.5   # displacement leg must move >= 3.5 ES pts
+  displacement_search_bars: 5    # leg must start within 5 bars of the sweep
+  displacement_max_bars: 3       # leg = at most 3 same-direction candles
+  ob_min_candles: 2        # order block needs >= 2 opposite-closed candles
+  ob_max_candles: 5        # at most 5 candles form the OB zone
+  entry_zone: "fvg_mid"    # limit at the FVG 50% midpoint ("ob_mid" alt.)
+  stop_buffer_points: 1.0  # stop sits this far beyond swept level / OB...
+  stop_buffer_ticks: 1      # ...plus this many ticks
+  min_rr: 1.5              # opposing-liquidity target must pay >= 1.5R
+  measured_move_rr: 2.0    # else target = 2R measured move
+  setup_max_bars_1m: 10    # pending setup voids after 10 unfilled 1m bars
+                           # = 10-minute lifetime (Steve, Nov 19 2026);
+                           # the 15m original uses 12 x 5m bars = 60 min
+  bias_lookback_1h_bars: 40
