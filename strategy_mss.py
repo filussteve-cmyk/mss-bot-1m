@@ -566,6 +566,19 @@ def htf_bias(bars_1h: List[Bar], params: MssParams = ES_PARAMS) -> str:
     return "neutral"
 
 
+def bias_allows(bias: str, direction: str) -> bool:
+    """True when the HTF bias permits trading in `direction`.
+
+    The bias speaks bullish/bearish/neutral while setups speak
+    long/short — the two vocabularies must be mapped, never compared
+    directly (comparing them raw never matches, which silently
+    skipped every setup until the Nov 20, 2026 fix). Neutral bias
+    allows nothing.
+    """
+    return (bias == "bullish" and direction == "long") or (
+        bias == "bearish" and direction == "short")
+
+
 # ---------------------------------------------------------------------------
 # Entry evaluation on 1m bars (limit at the FVG midpoint)
 # ---------------------------------------------------------------------------

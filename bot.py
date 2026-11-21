@@ -544,7 +544,8 @@ async def main() -> None:
             state["last_1m_idx"] = bar.idx
             if executor.has_pending and armed is not None:
                 # Bias flip voids the idea (trade only in HTF direction).
-                if bias != "neutral" and bias != armed.direction:
+                if bias != "neutral" and not strategy_mss.bias_allows(
+                        bias, armed.direction):
                     pend = executor.cancel_pending()
                     state["voided_setup_keys"].append(armed.key)
                     log.warning("Setup voided: HTF bias flipped to %s "
@@ -634,9 +635,9 @@ async def main() -> None:
                          setup.mss_idx, setup.fvg_bottom, setup.fvg_top,
                          setup.entry, setup.stop, setup.target,
                          setup.target_method, setup.risk_points)
-                if setup.direction != bias:
-                    log.info("Setup skipped: direction %s != HTF bias %s.",
-                             setup.direction, bias)
+                if not strategy_mss.bias_allows(bias, setup.direction):
+                    log.info("Setup skipped: direction %s not allowed by "
+                             "HTF bias %s.", setup.direction, bias)
                     continue
                 if not risk.in_entry_window(now):
                     log.info("Setup skipped: outside entry window "

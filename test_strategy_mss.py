@@ -369,6 +369,18 @@ def test_bias_neutral_too_few_bars():
     assert strategy_mss.htf_bias(mk(BULL_1H[:5])) == "neutral"
 
 
+def test_bias_allows_maps_direction_vocabulary():
+    # Regression (Nov 20, 2026): the bias speaks bullish/bearish while
+    # setups speak long/short. bot.py compared the two raw, which
+    # never matched and silently skipped every setup.
+    assert strategy_mss.bias_allows("bullish", "long")
+    assert strategy_mss.bias_allows("bearish", "short")
+    assert not strategy_mss.bias_allows("bullish", "short")
+    assert not strategy_mss.bias_allows("bearish", "long")
+    assert not strategy_mss.bias_allows("neutral", "long")
+    assert not strategy_mss.bias_allows("neutral", "short")
+
+
 # ---------------------------------------------------------------------------
 # Entry evaluation on 1m bars
 # ---------------------------------------------------------------------------
